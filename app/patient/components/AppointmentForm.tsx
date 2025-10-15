@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react';
-import { AppointmentForm } from '../types/appointment';
-import { createAppointment } from '../utils/api';
+import { AppointmentForm } from '../../types/appointment';
+import { createAppointment } from '../../utils/api';
 
 const departments = ['Cardiology', 'Neurology', 'Orthopedics'] as const;
 
