@@ -37,6 +37,7 @@ export default function AppointmentFormComponent() {
     try {
       const res = await createAppointment(form);
       setMessage(res.data.message);
+      console.log(res.data);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Error booking appointment');
     }
