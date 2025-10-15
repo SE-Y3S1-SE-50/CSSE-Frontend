@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, BellDot, Check, Plus } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -11,17 +10,6 @@ type UserResponse = {
   email?: string;
 };
 
-interface Notification {
-  _id: string;
-  type: string;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdTimestamp: string;
-  entityType?: string;
-  entityId?: string;
-}
-
 interface CustomerNavigationProps {
   user?: UserResponse;
   setActiveTab?: (tab: string) => void;
@@ -30,20 +18,26 @@ interface CustomerNavigationProps {
 const PatientNavigation = ({ user, setActiveTab }: CustomerNavigationProps) => {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
 
-
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_BASE_URL}/logout`, {
+      // ✅ FIXED: Use consistent endpoint
+      await fetch(`${API_BASE_URL}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -52,7 +46,6 @@ const PatientNavigation = ({ user, setActiveTab }: CustomerNavigationProps) => {
       console.error('Logout error:', error);
     }
   };
-
 
   if (!user) return (
     <div className="flex items-center justify-center min-h-screen bg-black text-white text-xl">
@@ -66,24 +59,20 @@ const PatientNavigation = ({ user, setActiveTab }: CustomerNavigationProps) => {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-3xl">📦</span>
-              <h1 className="text-3xl font-bold text-white">Sparrow</h1>
+              <span className="text-3xl">🏥</span>
+              <h1 className="text-3xl font-bold text-white">Patient Portal</h1>
             </div>
           </div>
           
           <div className="flex items-center gap-6">
-            
-
-            
-
             {/* User Profile */}
             <div className="relative" ref={dropdownRef}>
               <div 
                 className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 rounded-lg px-3 py-2 transition-colors"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user.firstName?.charAt(0) || 'U'}
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold">
+                  {user.firstName?.charAt(0) || 'P'}
                 </div>
                 <div className="hidden md:block">
                   <span className="text-white font-medium">{user.firstName} {user.lastName}</span>
