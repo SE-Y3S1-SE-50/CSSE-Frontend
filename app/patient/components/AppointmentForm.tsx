@@ -8,12 +8,14 @@ import {
   getAvailableSlots 
 } from '../../utils/api';
 
+
 const steps = [
   { number: 1, title: 'Department' },
   { number: 2, title: 'Schedule' },
   { number: 3, title: 'Details' },
   { number: 4, title: 'Confirm' },
 ];
+
 
 // Step Indicator Component
 const StepIndicator = ({ currentStep }: { currentStep: number }) => (
@@ -25,9 +27,9 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
                 currentStep > step.number
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-[#6f9556] text-white'
                   : currentStep === step.number
-                  ? 'bg-blue-600 text-white ring-4 ring-blue-200'
+                  ? 'bg-[#6f9556] text-white '
                   : 'bg-gray-300 text-gray-600'
               }`}
             >
@@ -41,6 +43,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
               {step.title}
             </span>
           </div>
+
 
           {index < steps.length - 1 && (
             <div className="flex-1 flex items-center pt-[20px] px-2">
@@ -57,6 +60,73 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
   </div>
 );
 
+
+// Summary Panel Component (for Step 3 only)
+const SummaryPanel = ({
+  form,
+  selectedDoctor,
+}: {
+  form: AppointmentForm;
+  selectedDoctor: string;
+}) => {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Not selected';
+    try {
+      const date = new Date(dateString + 'T00:00:00');
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  return (
+    <div className="bg-[#f5d709] text-black opacity-80  rounded-xl p-6 sticky top-4">
+      <h3 className="text-2xl font-bold mb-6">Appointment Summary</h3>
+      
+      <div className="space-y-0">
+      
+
+        {/* Doctor */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+           
+            <div className="flex-1">
+              <p className=" text-lg">Dr. {selectedDoctor}</p>
+              <p>{form.department}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Date */}
+        <div className=" mt-[5px] rounded-lg px-4">
+          <div className="flex items-start space-x-3">
+           
+            <div className="flex-1">
+              <p className=" text-md">{formatDate(form.date)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Time */}
+        <div className=" rounded-lg px-4">
+          <div className="flex items-start space-x-3">
+            
+            <div className="flex-1">
+              <p className=" text-md">{form.timeSlot}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 // Step 1: Department Selection
 const DepartmentStep = ({ 
   form, 
@@ -72,7 +142,7 @@ const DepartmentStep = ({
   <div className="space-y-6 text-black">
     <div className="text-center mb-6">
       <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        Select Department
+        Choose a Department
       </h3>
       <p className="text-sm text-gray-600">
         Choose the medical department for your appointment
@@ -89,14 +159,14 @@ const DepartmentStep = ({
         <p className="text-gray-600">No departments available. Please contact support.</p>
       </div>
     ) : (
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {departments.map((dept) => (
           <button
             key={dept._id}
             onClick={() => setForm({ ...form, department: dept.name })}
             className={`p-6 rounded-lg border-2 transition-all text-left ${
               form.department === dept.name
-                ? 'border-blue-600 bg-blue-50 shadow-md'
+                ? 'border-[#f5d709] bg-blue-50 shadow-md'
                 : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
             }`}
           >
@@ -107,17 +177,6 @@ const DepartmentStep = ({
                   {dept.description}
                 </p>
               </div>
-              <div
-                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                  form.department === dept.name
-                    ? 'border-blue-600 bg-blue-600'
-                    : 'border-gray-300'
-                }`}
-              >
-                {form.department === dept.name && (
-                  <span className="text-white text-xs">✓</span>
-                )}
-              </div>
             </div>
           </button>
         ))}
@@ -125,6 +184,7 @@ const DepartmentStep = ({
     )}
   </div>
 );
+
 
 // Step 2: Schedule Selection
 const ScheduleStep = ({
@@ -147,121 +207,274 @@ const ScheduleStep = ({
   availableSlots: string[];
   loadingDoctors: boolean;
   loadingSlots: boolean;
-}) => (
-  <div className="space-y-6 text-black">
-    <div className="text-center mb-6">
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        Choose Schedule & Doctor
-      </h3>
-      <p className="text-sm text-gray-600">
-        Select your preferred doctor, date, and time
-      </p>
-    </div>
+}) => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
 
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Select Doctor
-      </label>
-      {loadingDoctors ? (
-        <div className="text-center py-4">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-sm text-gray-600">Loading doctors...</p>
-        </div>
-      ) : doctors.length === 0 ? (
-        <p className="text-sm text-gray-500 py-4">No doctors available in this department.</p>
-      ) : (
-        <div className="space-y-3">
-          {doctors.map((doc) => (
-            <button
-              key={doc._id}
-              onClick={() => handleDoctorSelection(doc)}
-              className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                selectedDoctor === `${doc.firstName} ${doc.lastName}`
-                  ? 'border-blue-600 bg-blue-50 shadow-md'
-                  : 'border-gray-300 hover:border-blue-400'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold">Dr. {doc.firstName} {doc.lastName}</h4>
-                  <p className="text-sm text-gray-600">{doc.specialization || doc.department}</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Available: {doc.workingDays?.join(', ') || 'Weekdays'}
-                  </p>
-                </div>
-                <div
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    selectedDoctor === `${doc.firstName} ${doc.lastName}`
-                      ? 'border-blue-600 bg-blue-600'
-                      : 'border-gray-300'
-                  }`}
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    return { daysInMonth, startingDayOfWeek, year, month };
+  };
+
+  const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentMonth);
+
+  const handleDateSelect = (day: number) => {
+    if (!form.doctorId) return;
+    
+    const selectedDate = new Date(year, month, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) return;
+
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    setForm({ ...form, date: formattedDate, timeSlot: '' });
+  };
+
+  const previousMonth = () => {
+    setCurrentMonth(new Date(year, month - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(new Date(year, month + 1, 1));
+  };
+
+  const monthNames = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+  
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const isDateSelected = (day: number) => {
+    if (!form.date) return false;
+    const selectedDate = new Date(form.date);
+    return selectedDate.getDate() === day && 
+           selectedDate.getMonth() === month && 
+           selectedDate.getFullYear() === year;
+  };
+
+  const isDateDisabled = (day: number) => {
+    const dateToCheck = new Date(year, month, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dateToCheck < today || !form.doctorId;
+  };
+
+  const filteredDoctors = doctors.filter((doc) => {
+    const fullName = `${doc.firstName} ${doc.lastName}`.toLowerCase();
+    const specialization = (doc.specialization || doc.department || '').toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return fullName.includes(query) || specialization.includes(query);
+  });
+
+  return (
+    <div className="space-y-6 rounded-[5px] px-[40px] py-[50px] bg-[#d7fe9f] text-black">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+          Pick Doctor & Time
+        </h3>
+        <p className="text-sm text-gray-600">
+          Select your preferred doctor, date, and time
+        </p>
+      </div>
+
+      <div className='grid grid-cols-2 gap-8'>
+        {/* Left Column - Calendar and Time Slots */}
+        <div className="space-y-6">
+          {/* Calendar */}
+          <div>
+            <div className="bg-white rounded-lg p-4 border-2 border-gray-300">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={previousMonth}
+                  disabled={!form.doctorId}
+                  className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {selectedDoctor === `${doc.firstName} ${doc.lastName}` && (
-                    <span className="text-white text-xs">✓</span>
-                  )}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h3 className="font-semibold text-lg">
+                  {monthNames[month]} {year}
+                </h3>
+                <button
+                  type="button"
+                  onClick={nextMonth}
+                  disabled={!form.doctorId}
+                  className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Day Names */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {dayNames.map(day => (
+                  <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Empty cells for days before month starts */}
+                {[...Array(startingDayOfWeek)].map((_, index) => (
+                  <div key={`empty-${index}`} className="aspect-square"></div>
+                ))}
+                
+                {/* Days of the month */}
+                {[...Array(daysInMonth)].map((_, index) => {
+                  const day = index + 1;
+                  const disabled = isDateDisabled(day);
+                  const selected = isDateSelected(day);
+
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => handleDateSelect(day)}
+                      disabled={disabled}
+                      className={`aspect-square flex items-center justify-center rounded-lg text-sm font-medium transition-all
+                        ${selected 
+                          ? 'bg-[#f5d709] text-black shadow-md' 
+                          : disabled 
+                            ? 'text-gray-300 cursor-not-allowed' 
+                            : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {!form.doctorId && (
+              <p className="text-xs text-gray-500 mt-2">Please select a doctor first to enable date selection</p>
+            )}
+          </div>
+
+          {/* Time Slot Selection */}
+          <div className='bg-white border-2 border-gray-300 px-[15px] py-[15px] rounded-[8px]'>
+            <label className="block text-md font-medium text-gray-700 mb-2">
+              Choose a Time Slot
+              {loadingSlots && <span className="ml-2 text-sm text-gray-500">(Loading...)</span>}
+            </label>
+            {!form.date ? (
+              <div className="bg-white rounded-lg p-6 border-2 border-gray-300 text-center">
+                <p className="text-sm text-gray-500">Please select a date first</p>
+              </div>
+            ) : loadingSlots ? (
+              <div className="bg-white rounded-lg p-6 border-2 border-gray-300 text-center">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            ) : availableSlots.length === 0 ? (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800">
+                  No available slots for this date. Please choose another date.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg p-4 min-h-[200px] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-3">
+                  {availableSlots.map((slot) => (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => setForm({ ...form, timeSlot: slot })}
+                      className={`p-3 rounded-lg border-2 transition-all font-medium ${
+                        form.timeSlot === slot
+                          ? 'border-[#f5d709] bg-[#f5d709] shadow-md text-black'
+                          : 'border-gray-300 hover:border-[#f5d709]'
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </button>
-          ))}
+            )}
+          </div>
         </div>
-      )}
-    </div>
 
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Select Date
-      </label>
-      <input
-        name="date"
-        type="date"
-        value={form.date}
-        onChange={handleChange}
-        min={new Date().toISOString().split('T')[0]}
-        disabled={!form.doctorId}
-        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-      />
-      {!form.doctorId && (
-        <p className="text-xs text-gray-500 mt-1">Please select a doctor first</p>
-      )}
-    </div>
-
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Select Time Slot
-        {loadingSlots && <span className="ml-2 text-sm text-gray-500">(Loading...)</span>}
-      </label>
-      {!form.date ? (
-        <p className="text-sm text-gray-500 py-4">Please select a date first</p>
-      ) : loadingSlots ? (
-        <div className="text-center py-4">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-        </div>
-      ) : availableSlots.length === 0 ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
-            No available slots for this date. Please choose another date.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-3">
-          {availableSlots.map((slot) => (
-            <button
-              key={slot}
-              onClick={() => setForm({ ...form, timeSlot: slot })}
-              className={`p-3 rounded-lg border-2 transition-all ${
-                form.timeSlot === slot
-                  ? 'border-blue-600 bg-blue-50 font-semibold'
-                  : 'border-gray-300 hover:border-blue-400'
-              }`}
+        {/* Right Column - Doctor Selection */}
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Doctor
+          </label>
+          
+          {/* Search Bar */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by name or specialization..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f5d709] focus:border-[#f5d709] bg-white"
+            />
+            <svg 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
             >
-              {slot}
-            </button>
-          ))}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+
+          {loadingDoctors ? (
+            <div className="text-center py-4">
+              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <p className="mt-2 text-sm text-gray-600">Loading doctors...</p>
+            </div>
+          ) : doctors.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4">No doctors available in this department.</p>
+          ) : filteredDoctors.length === 0 ? (
+            <div className="text-center py-8 bg-white rounded-lg border-2 border-gray-300">
+              <p className="text-sm text-gray-500">No doctors found matching "{searchQuery}"</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+              {filteredDoctors.map((doc) => (
+                <button
+                  key={doc._id}
+                  type="button"
+                  onClick={() => handleDoctorSelection(doc)}
+                  className={`w-full p-4 rounded-lg cursor-pointer border-2 transition-all text-left ${
+                    selectedDoctor === `${doc.firstName} ${doc.lastName}`
+                      ? 'border-[#f5d709] bg-white shadow-md'
+                      : 'border-gray-300 hover:border-[#f5d709] bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold">Dr. {doc.firstName} {doc.lastName}</h4>
+                      <p className="text-sm text-gray-600">{doc.specialization || doc.department}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Available: {doc.workingDays?.join(', ') || 'Weekdays'}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 // Step 3: Patient Details
 const DetailsStep = ({
@@ -370,8 +583,18 @@ const DetailsStep = ({
         <option value="Tamil">Tamil</option>
       </select>
     </div>
+    <div>
+      <input 
+      type='checkbox'
+      required
+      />
+      <label className="text-sm text-gray-600 ml-2">
+        I agree to share my data with the clinic for appointment purposes.
+      </label>
+    </div>
   </div>
 );
+
 
 // Step 4: Confirmation
 const ConfirmationStep = ({
@@ -431,7 +654,7 @@ const ConfirmationStep = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Doctor:</span>
-                  <span className="font-semibold">{selectedDoctor}</span>
+                  <span className="font-semibold">Dr. {selectedDoctor}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Date:</span>
@@ -491,10 +714,10 @@ const ConfirmationStep = ({
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className={`w-full py-3 rounded-lg transition font-semibold ${
+            className={`w-full py-3 cursor-pointer rounded-lg transition text-black ${
               isSubmitting 
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-[#f5d709]  '
             }`}
           >
             {isSubmitting ? 'Booking...' : 'Confirm & Book Appointment'}
@@ -540,7 +763,7 @@ const ConfirmationStep = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Doctor:</span>
-                <span className="font-semibold">{selectedDoctor}</span>
+                <span className="font-semibold">Dr. {selectedDoctor}</span>
               </div>
             </div>
           </div>
@@ -553,6 +776,7 @@ const ConfirmationStep = ({
     </div>
   );
 };
+
 
 // Main Component
 export default function AppointmentFormComponent() {
@@ -591,14 +815,13 @@ export default function AppointmentFormComponent() {
     return Math.random().toString(36).substr(2, 9).toUpperCase();
   }, []);
 
-  // ✅ FETCH LOGGED-IN USER ID ON MOUNT
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       setIsLoadingAuth(true);
       try {
         const response = await fetch('http://localhost:8000/api/check-cookie', {
           method: 'GET',
-          credentials: 'include', // Important for sending cookies
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -607,13 +830,11 @@ export default function AppointmentFormComponent() {
 
         const data = await response.json();
         
-        // Verify user is a patient
         if (data.role !== 'Patient') {
           setError('Only patients can book appointments. Please login as a patient.');
           return;
         }
 
-        // Set the logged-in patient's user ID
         setLoggedInUserId(data.id);
         setForm(prev => ({ ...prev, patientId: data.id }));
         
@@ -628,9 +849,8 @@ export default function AppointmentFormComponent() {
     fetchLoggedInUser();
   }, []);
 
-  // Fetch departments on mount
   useEffect(() => {
-    if (!loggedInUserId) return; // Wait for auth
+    if (!loggedInUserId) return;
 
     const fetchDepartments = async () => {
       setLoadingDepartments(true);
@@ -648,7 +868,6 @@ export default function AppointmentFormComponent() {
     fetchDepartments();
   }, [loggedInUserId]);
 
-  // Fetch doctors when department changes
   useEffect(() => {
     if (!form.department) {
       setDoctors([]);
@@ -671,7 +890,6 @@ export default function AppointmentFormComponent() {
     fetchDoctors();
   }, [form.department]);
 
-  // Fetch available slots when doctor and date change
   useEffect(() => {
     if (!form.doctorId || !form.date) {
       setAvailableSlots([]);
@@ -710,8 +928,8 @@ export default function AppointmentFormComponent() {
   };
 
   const handleDoctorSelection = (doctor: Doctor) => {
-    setSelectedDoctor(`Dr. ${doctor.firstName} ${doctor.lastName}`);
-    setForm({ ...form, doctorId: doctor.doctorId, timeSlot: '' }); // Reset time slot when doctor changes
+    setSelectedDoctor(`${doctor.firstName} ${doctor.lastName}`);
+    setForm({ ...form, doctorId: doctor.doctorId, timeSlot: '' });
   };
 
   const nextStep = () => {
@@ -760,7 +978,6 @@ export default function AppointmentFormComponent() {
   };
 
   const handleSubmit = async () => {
-    // ✅ VALIDATE PATIENT ID EXISTS
     if (!form.patientId || !loggedInUserId) {
       setError('Patient ID is missing. Please login again.');
       return;
@@ -770,9 +987,8 @@ export default function AppointmentFormComponent() {
     setError('');
     
     try {
-      // ✅ USE LOGGED-IN USER'S ID AS PATIENT ID
       const appointmentData = {
-        patientId: loggedInUserId, // Use the actual logged-in user's ID
+        patientId: loggedInUserId,
         doctorId: form.doctorId,
         department: form.department,
         date: form.date,
@@ -793,10 +1009,9 @@ export default function AppointmentFormComponent() {
     }
   };
 
-  // ✅ SHOW LOADING WHILE CHECKING AUTHENTICATION
   if (isLoadingAuth) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
+      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl">
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600">Verifying authentication...</p>
@@ -805,10 +1020,9 @@ export default function AppointmentFormComponent() {
     );
   }
 
-  // ✅ SHOW ERROR IF NOT AUTHENTICATED
   if (!loggedInUserId && !isLoadingAuth) {
     return (
-      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
+      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl">
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -829,65 +1043,83 @@ export default function AppointmentFormComponent() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
+    <div className="max-w-7xl mx-auto mt-10 p-8">
       <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Book an Appointment</h2>
+        <h2 className="text-3xl font-bold text-gray-900">Make an Appointment</h2>
         <p className="text-gray-600 mt-2">
           Complete the steps below to schedule your visit
         </p>
       </div>
-
+      
       <StepIndicator currentStep={currentStep} />
+      
+      {/* Conditional Layout: Show grid only for Step 3 */}
+      {currentStep === 3 ? (
+        <div className="grid grid-cols-3 gap-8 mt-8">
+          {/* Left Side - Summary Panel (only in Step 3) */}
+          <div className="col-span-1">
+            <SummaryPanel 
+              form={form} 
+              selectedDoctor={selectedDoctor}
+            />
+          </div>
 
-      <div className="min-h-[400px]">
-        {currentStep === 1 && (
-          <DepartmentStep 
-            form={form} 
-            setForm={setForm} 
-            departments={departments}
-            loading={loadingDepartments}
-          />
-        )}
-        {currentStep === 2 && (
-          <ScheduleStep
-            form={form}
-            handleChange={handleChange}
-            setForm={setForm}
-            selectedDoctor={selectedDoctor}
-            handleDoctorSelection={handleDoctorSelection}
-            doctors={doctors}
-            availableSlots={availableSlots}
-            loadingDoctors={loadingDoctors}
-            loadingSlots={loadingSlots}
-          />
-        )}
-        {currentStep === 3 && (
-          <DetailsStep
-            patientDetails={patientDetails}
-            handlePatientDetailsChange={handlePatientDetailsChange}
-          />
-        )}
-        {currentStep === 4 && (
-          <ConfirmationStep
-            message={message}
-            form={form}
-            selectedDoctor={selectedDoctor}
-            patientDetails={patientDetails}
-            handleSubmit={handleSubmit}
-            confirmationNumber={confirmationNumber}
-            isSubmitting={isSubmitting}
-          />
-        )}
-      </div>
+          {/* Right Side - Details Form */}
+          <div className="col-span-2 bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+            <DetailsStep
+              patientDetails={patientDetails}
+              handlePatientDetailsChange={handlePatientDetailsChange}
+            />
+          </div>
+        </div>
+      ) : (
+        /* Full width for other steps */
+        <div className="max-w-5xl mx-auto mt-8 bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+          <div className="min-h-[400px]">
+            {currentStep === 1 && (
+              <DepartmentStep 
+                form={form} 
+                setForm={setForm} 
+                departments={departments}
+                loading={loadingDepartments}
+              />
+            )}
+            {currentStep === 2 && (
+              <ScheduleStep
+                form={form}
+                handleChange={handleChange}
+                setForm={setForm}
+                selectedDoctor={selectedDoctor}
+                handleDoctorSelection={handleDoctorSelection}
+                doctors={doctors}
+                availableSlots={availableSlots}
+                loadingDoctors={loadingDoctors}
+                loadingSlots={loadingSlots}
+              />
+            )}
+            {currentStep === 4 && (
+              <ConfirmationStep
+                message={message}
+                form={form}
+                selectedDoctor={selectedDoctor}
+                patientDetails={patientDetails}
+                handleSubmit={handleSubmit}
+                confirmationNumber={confirmationNumber}
+                isSubmitting={isSubmitting}
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {error && (
-        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg max-w-5xl mx-auto">
           <p className="text-red-600 text-center text-sm">{error}</p>
         </div>
       )}
 
       {currentStep < 4 && (
-        <div className="flex gap-4 mt-8">
+        <div className={`flex gap-4 mt-8 ${currentStep === 3 ? 'max-w-7xl' : 'max-w-5xl'} mx-auto`}>
           {currentStep > 1 && (
             <button
               onClick={prevStep}
@@ -898,11 +1130,11 @@ export default function AppointmentFormComponent() {
           )}
           <button
             onClick={nextStep}
-            className={`flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold ${
+            className={`flex-1 px-6 py-3 bg-[#f5d709] text-black rounded-lg hover:bg-[#e5c708] transition font-semibold ${
               currentStep === 1 ? 'w-full' : ''
             }`}
           >
-            {currentStep === 3 ? 'Review Appointment' : 'Next →'}
+            {currentStep === 3 ? 'Review Appointment' : 'Continue →'}
           </button>
         </div>
       )}

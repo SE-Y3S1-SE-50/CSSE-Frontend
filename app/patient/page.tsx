@@ -83,7 +83,7 @@ export default function PatientDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-orange-500 text-white">
+    <div className="min-h-screen bg-white text-white">
       {/* Header */}
       <PatientNavigation user={user} setActiveTab={setActiveTab} />
 
@@ -92,7 +92,7 @@ export default function PatientDashboard() {
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-[#1D1D1D]">
+        <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-white">
           {activeTab === 'booking' && <AppointmentPage setActiveTab={setActiveTab} />}
           {activeTab === 'appointment' && <DisplayAppointments setActiveTab={setActiveTab} />}
           {activeTab === 'overview' && (
