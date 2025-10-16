@@ -15,6 +15,36 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
+    return config;
+  },
+  (error) => {
+    console.error('API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('API Response Error:', error);
+    console.error('API Response Error Details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);
+
 // ============================================
 // AUTHENTICATION
 // ============================================
@@ -32,7 +62,8 @@ export const logout = async () => {
 // ============================================
 
 export const getAllDepartments = async () => {
-  return api.get('/department');
+  const response = await api.get('/department');
+  return { data: response.data.departments };
 };
 
 export const createDepartment = async (departmentData: {
@@ -40,6 +71,68 @@ export const createDepartment = async (departmentData: {
   description: string;
 }) => {
   return api.post('/department', departmentData);
+};
+
+// ============================================
+// STAFF
+// ============================================
+
+export const getAllStaff = async () => {
+  return api.get('/staff');
+};
+
+export const createStaff = async (staffData: any) => {
+  return api.post('/staff', staffData);
+};
+
+export const updateStaff = async (id: string, staffData: any) => {
+  return api.put(`/staff/${id}`, staffData);
+};
+
+export const deleteStaff = async (id: string) => {
+  return api.delete(`/staff/${id}`);
+};
+
+// ============================================
+// SCHEDULES
+// ============================================
+
+export const getAllSchedules = async (params?: any) => {
+  return api.get('/schedule', { params });
+};
+
+export const createSchedule = async (scheduleData: any) => {
+  console.log('API: Creating schedule with data:', scheduleData);
+  
+  try {
+    const response = await api.post('/schedule', scheduleData);
+    console.log('API: Schedule created successfully:', response.data);
+    return response;
+  } catch (error: any) {
+    console.error('API: Error creating schedule:', error);
+    console.error('API: Error response:', error.response?.data);
+    throw error;
+  }
+};
+
+export const updateSchedule = async (id: string, scheduleData: any) => {
+  return api.put(`/schedule/${id}`, scheduleData);
+};
+
+export const deleteSchedule = async (id: string) => {
+  return api.delete(`/schedule/${id}`);
+};
+
+export const getAvailableStaff = async (params: any) => {
+  return api.get('/schedule/available-staff', { params });
+};
+
+// ============================================
+// ADMIN
+// ============================================
+
+export const registerAdmin = async (adminData: any) => {
+  return api.post('/admin/register', adminData);
 };
 
 // ============================================
