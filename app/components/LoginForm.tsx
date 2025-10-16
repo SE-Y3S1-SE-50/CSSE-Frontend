@@ -51,6 +51,9 @@ export default function LoginForm() {
           case "Patient":
             router.push("/patient");
             break;
+          case "Admin":
+            router.push("/admin");
+            break;
           default:
             router.push("/");
         }
