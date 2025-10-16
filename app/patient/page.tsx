@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "./components/Sidebar";
 import PatientNavigation from "./components/PatientNavigation";
 import AppointmentPage from "./pages/appointmentPage";
+import DisplayAppointments from "./pages/DisplayAppointments";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -92,7 +93,8 @@ export default function PatientDashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-[#1D1D1D]">
-          {activeTab === 'appointment' && <AppointmentPage setActiveTab={setActiveTab} />}
+          {activeTab === 'booking' && <AppointmentPage setActiveTab={setActiveTab} />}
+          {activeTab === 'appointment' && <DisplayAppointments setActiveTab={setActiveTab} />}
           {activeTab === 'overview' && (
             <div className="text-white">
               <h1 className="text-3xl font-bold mb-4">Welcome, {user?.firstName} {user?.lastName}</h1>
