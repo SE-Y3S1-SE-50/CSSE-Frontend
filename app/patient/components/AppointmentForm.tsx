@@ -717,7 +717,7 @@ const ConfirmationStep = ({
             className={`w-full py-3 cursor-pointer rounded-lg transition text-black ${
               isSubmitting 
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-[#f5d709]  '
+                : 'bg-[#f5d709]  text-white'
             }`}
           >
             {isSubmitting ? 'Booking...' : 'Confirm & Book Appointment'}
