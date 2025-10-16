@@ -96,7 +96,7 @@ export default function PatientDashboard() {
           {activeTab === 'booking' && <AppointmentPage setActiveTab={setActiveTab} />}
           {activeTab === 'appointment' && <DisplayAppointments setActiveTab={setActiveTab} />}
           {activeTab === 'overview' && (
-            <div className="text-white">
+            <div className="text-black">
               <h1 className="text-3xl font-bold mb-4">Welcome, {user?.firstName} {user?.lastName}</h1>
               <p>Active Tab: {activeTab}</p>
             </div>
