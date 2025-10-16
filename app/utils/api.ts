@@ -1,113 +1,146 @@
+// ============================================
+// API UTILITY FUNCTIONS (utils/api.ts)
+// ============================================
+
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api';
 
+// Configure axios to include credentials (cookies) with every request
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
 });
 
 // ============================================
-// APPOINTMENT APIs
+// AUTHENTICATION
 // ============================================
-export const createAppointment = async (appointmentData: any) => {
-  return await api.post('/appointment', appointmentData);
+
+export const checkAuth = async () => {
+  return api.get('/check-cookie');
 };
 
-export const getAllAppointments = async () => {
-  return await api.get('/appointment');
-};
-
-export const getAppointmentsByPatient = async (email: string) => {
-  return await api.get(`/appointment/patient/${email}`);
-};
-
-export const getAppointmentsByDoctor = async (doctorId: string) => {
-  return await api.get(`/appointment/doctor/${doctorId}`);
+export const logout = async () => {
+  return api.post('/logout');
 };
 
 // ============================================
-// DEPARTMENT APIs
+// DEPARTMENTS
 // ============================================
+
 export const getAllDepartments = async () => {
-  return await api.get('/department');
+  return api.get('/department');
 };
 
-export const seedDepartments = async () => {
-  return await api.post('/department/seed');
+export const createDepartment = async (departmentData: {
+  name: string;
+  description: string;
+}) => {
+  return api.post('/department', departmentData);
 };
 
 // ============================================
-// DOCTOR APIs
+// DOCTORS
 // ============================================
+
 export const getAllDoctors = async () => {
-  return await api.get('/doctor/doctors');
+  return api.get('/doctor/doctors');
 };
 
 export const getDoctorsByDepartment = async (department: string) => {
-  return await api.get(`/doctor/doctors/department/${department}`);
+  return api.get(`/doctor/doctors/department/${department}`);
+};
+
+export const getDoctorById = async (doctorId: string) => {
+  return api.get(`/doctor/${doctorId}`);
 };
 
 export const getAvailableSlots = async (doctorId: string, date: string) => {
-  return await api.get(`/doctor/doctors/${doctorId}/slots`, {
+  return api.get(`/doctor/doctors/${doctorId}/slots`, {
     params: { date }
   });
 };
 
-export const getDoctorById = async (id: string) => {
-  return await api.get(`/doctor/${id}`);
+// ============================================
+// APPOINTMENTS
+// ============================================
+
+export const createAppointment = async (appointmentData: {
+  patientId: string;
+  doctorId: string;
+  department: string;
+  date: string;
+  timeSlot: string;
+  patientDetails: {
+    fullName: string;
+    email: string;
+    phone: string;
+    address?: string;
+    reasonForVisit?: string;
+    preferredLanguage?: string;
+  };
+}) => {
+  return api.post('/appointment', appointmentData);
 };
 
-export const seedDoctors = async () => {
-  return await api.post('/doctor/doctors/seed');
+export const getAllAppointments = async () => {
+  return api.get('/appointment');
+};
+
+// ✅ NEW: Get appointments by patient ID (PRIMARY METHOD)
+export const getAppointmentsByPatientId = async (patientId: string) => {
+  return api.get(`/appointment/patient/${patientId}`);
+};
+
+// ✅ BACKUP: Get appointments by email (alternative method)
+export const getAppointmentsByEmail = async (email: string) => {
+  return api.get(`/appointment/patient/email/${encodeURIComponent(email)}`);
+};
+
+export const getAppointmentsByDoctor = async (doctorId: string) => {
+  return api.get(`/appointment/doctor/${doctorId}`);
 };
 
 // ============================================
-// AUTH APIs
+// USERS
 // ============================================
-export const login = async (credentials: { userName: string; password: string }) => {
-  return await api.post('/user/login', credentials);
-};
 
-export const registerPatient = async (patientData: any) => {
-  return await api.post('/user/register/patient', patientData);
+export const login = async (credentials: {
+  userName: string;
+  password: string;
+}) => {
+  return api.post('/user/login', credentials);
 };
 
 export const registerDoctor = async (doctorData: any) => {
-  return await api.post('/user/register/doctor', doctorData);
+  return api.post('/user/register/doctor', doctorData);
 };
 
-export const logout = async () => {
-  return await api.post('/logout');
+export const registerPatient = async (patientData: any) => {
+  return api.post('/user/register/patient', patientData);
 };
 
-export const checkAuth = async () => {
-  return await api.get('/check-cookie');
-};
-
-// ============================================
-// PATIENT APIs
-// ============================================
-export const getPatientById = async (id: string) => {
-  return await api.get(`/patient/${id}`);
+export const getAllUsers = async () => {
+  return api.get('/user');
 };
 
 export const updatePatient = async (patientData: any) => {
-  return await api.post('/user/update/patient', patientData);
-};
-
-// ============================================
-// USER APIs
-// ============================================
-export const getAllUsers = async () => {
-  return await api.get('/user');
+  return api.post('/user/update/patient', patientData);
 };
 
 export const updateDoctor = async (doctorData: any) => {
-  return await api.post('/user/update/doctor', doctorData);
+  return api.post('/user/update/doctor', doctorData);
+};
+
+// ============================================
+// PATIENT
+// ============================================
+
+export const getPatientById = async (patientId: string) => {
+  return api.get(`/patient/${patientId}`);
 };
 
 export default api;

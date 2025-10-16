@@ -584,13 +584,54 @@ export default function AppointmentFormComponent() {
   const [loadingDepartments, setLoadingDepartments] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [loggedInUserId, setLoggedInUserId] = useState<string>('');
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   const confirmationNumber = useMemo(() => {
     return Math.random().toString(36).substr(2, 9).toUpperCase();
   }, []);
 
+  // ✅ FETCH LOGGED-IN USER ID ON MOUNT
+  useEffect(() => {
+    const fetchLoggedInUser = async () => {
+      setIsLoadingAuth(true);
+      try {
+        const response = await fetch('http://localhost:8000/api/check-cookie', {
+          method: 'GET',
+          credentials: 'include', // Important for sending cookies
+        });
+
+        if (!response.ok) {
+          throw new Error('Not authenticated');
+        }
+
+        const data = await response.json();
+        
+        // Verify user is a patient
+        if (data.role !== 'Patient') {
+          setError('Only patients can book appointments. Please login as a patient.');
+          return;
+        }
+
+        // Set the logged-in patient's user ID
+        setLoggedInUserId(data.id);
+        setForm(prev => ({ ...prev, patientId: data.id }));
+        
+      } catch (err) {
+        console.error('Authentication error:', err);
+        setError('Please login to book an appointment.');
+      } finally {
+        setIsLoadingAuth(false);
+      }
+    };
+
+    fetchLoggedInUser();
+  }, []);
+
   // Fetch departments on mount
   useEffect(() => {
+    if (!loggedInUserId) return; // Wait for auth
+
     const fetchDepartments = async () => {
       setLoadingDepartments(true);
       try {
@@ -605,7 +646,7 @@ export default function AppointmentFormComponent() {
     };
 
     fetchDepartments();
-  }, []);
+  }, [loggedInUserId]);
 
   // Fetch doctors when department changes
   useEffect(() => {
@@ -719,18 +760,27 @@ export default function AppointmentFormComponent() {
   };
 
   const handleSubmit = async () => {
+    // ✅ VALIDATE PATIENT ID EXISTS
+    if (!form.patientId || !loggedInUserId) {
+      setError('Patient ID is missing. Please login again.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     
     try {
+      // ✅ USE LOGGED-IN USER'S ID AS PATIENT ID
       const appointmentData = {
-        patientId: patientDetails.email,
+        patientId: loggedInUserId, // Use the actual logged-in user's ID
         doctorId: form.doctorId,
         department: form.department,
         date: form.date,
         timeSlot: form.timeSlot,
         patientDetails
       };
+
+      console.log('Submitting appointment with patientId:', loggedInUserId);
 
       const res = await createAppointment(appointmentData);
       setMessage('Appointment booked successfully!');
@@ -742,6 +792,41 @@ export default function AppointmentFormComponent() {
       setIsSubmitting(false);
     }
   };
+
+  // ✅ SHOW LOADING WHILE CHECKING AUTHENTICATION
+  if (isLoadingAuth) {
+    return (
+      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ SHOW ERROR IF NOT AUTHENTICATED
+  if (!loggedInUserId && !isLoadingAuth) {
+    return (
+      <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Authentication Required</h3>
+          <p className="text-gray-600 mb-6">{error || 'Please login to book an appointment.'}</p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-xl shadow-lg">
