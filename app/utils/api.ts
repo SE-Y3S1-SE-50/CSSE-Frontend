@@ -236,4 +236,42 @@ export const getPatientById = async (patientId: string) => {
   return api.get(`/patient/${patientId}`);
 };
 
+export const getAllStaff = async () => {
+  return axios.get(`${API_BASE_URL}/staff`);
+};
+
+export const createStaff = async (staffData: any) => {
+  return axios.post(`${API_BASE_URL}/staff`, staffData);
+};
+
+export const updateStaff = async (id: string, staffData: any) => {
+  return axios.put(`${API_BASE_URL}/staff/${id}`, staffData);
+};
+
+export const deleteStaff = async (id: string) => {
+  return axios.delete(`${API_BASE_URL}/staff/${id}`);
+};
+
+// Schedule API
+export const getAllSchedules = async (params?: any) => {
+  return axios.get(`${API_BASE_URL}/schedule`, { params });
+};
+
+export const createSchedule = async (scheduleData: any) => {
+  return axios.post(`${API_BASE_URL}/schedule`, scheduleData);
+};
+
+export const updateSchedule = async (id: string, scheduleData: any) => {
+  return axios.put(`${API_BASE_URL}/schedule/${id}`, scheduleData);
+};
+
+export const deleteSchedule = async (id: string) => {
+  return axios.delete(`${API_BASE_URL}/schedule/${id}`);
+};
+
+export const getAvailableStaff = async (params: any) => {
+  return axios.get(`${API_BASE_URL}/schedule/available-staff`, { params });
+};
+
+
 export default api;
