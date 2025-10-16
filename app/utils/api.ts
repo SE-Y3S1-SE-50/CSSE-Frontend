@@ -27,12 +27,20 @@ export const logout = async () => {
   return api.post('/logout');
 };
 
+export const login = async (credentials: {
+  userName: string;
+  password: string;
+}) => {
+  return api.post('/user/login', credentials);
+};
+
 // ============================================
 // DEPARTMENTS
 // ============================================
 
 export const getAllDepartments = async () => {
-  return api.get('/department');
+  const response = await api.get('/department');
+  return { data: response.data.departments };
 };
 
 export const createDepartment = async (departmentData: {
@@ -40,6 +48,58 @@ export const createDepartment = async (departmentData: {
   description: string;
 }) => {
   return api.post('/department', departmentData);
+};
+
+// ============================================
+// STAFF
+// ============================================
+
+export const getAllStaff = async () => {
+  return api.get('/staff');
+};
+
+export const createStaff = async (staffData: any) => {
+  return api.post('/staff', staffData);
+};
+
+export const updateStaff = async (id: string, staffData: any) => {
+  return api.put(`/staff/${id}`, staffData);
+};
+
+export const deleteStaff = async (id: string) => {
+  return api.delete(`/staff/${id}`);
+};
+
+// ============================================
+// SCHEDULES
+// ============================================
+
+export const getAllSchedules = async (params?: any) => {
+  return api.get('/schedule', { params });
+};
+
+export const createSchedule = async (scheduleData: any) => {
+  return api.post('/schedule', scheduleData);
+};
+
+export const updateSchedule = async (id: string, scheduleData: any) => {
+  return api.put(`/schedule/${id}`, scheduleData);
+};
+
+export const deleteSchedule = async (id: string) => {
+  return api.delete(`/schedule/${id}`);
+};
+
+export const getAvailableStaff = async (params: any) => {
+  return api.get('/schedule/available-staff', { params });
+};
+
+// ============================================
+// ADMIN
+// ============================================
+
+export const registerAdmin = async (adminData: any) => {
+  return api.post('/admin/register', adminData);
 };
 
 // ============================================
@@ -90,12 +150,10 @@ export const getAllAppointments = async () => {
   return api.get('/appointment');
 };
 
-// ✅ NEW: Get appointments by patient ID (PRIMARY METHOD)
 export const getAppointmentsByPatientId = async (patientId: string) => {
   return api.get(`/appointment/patient/${patientId}`);
 };
 
-// ✅ BACKUP: Get appointments by email (alternative method)
 export const getAppointmentsByEmail = async (email: string) => {
   return api.get(`/appointment/patient/email/${encodeURIComponent(email)}`);
 };
@@ -107,13 +165,6 @@ export const getAppointmentsByDoctor = async (doctorId: string) => {
 // ============================================
 // USERS
 // ============================================
-
-export const login = async (credentials: {
-  userName: string;
-  password: string;
-}) => {
-  return api.post('/user/login', credentials);
-};
 
 export const registerDoctor = async (doctorData: any) => {
   return api.post('/user/register/doctor', doctorData);
