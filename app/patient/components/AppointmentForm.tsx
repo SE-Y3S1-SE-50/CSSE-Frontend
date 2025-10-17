@@ -717,7 +717,7 @@ const ConfirmationStep = ({
             className={`w-full py-3 cursor-pointer rounded-lg transition text-black ${
               isSubmitting 
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-[#f5d709]  text-white'
+                : 'bg-[#f5d709]  text-black'
             }`}
           >
             {isSubmitting ? 'Booking...' : 'Confirm & Book Appointment'}
@@ -1123,14 +1123,14 @@ export default function AppointmentFormComponent() {
           {currentStep > 1 && (
             <button
               onClick={prevStep}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-semibold text-gray-700"
+              className="flex-1 px-6 py-3 cursor-pointer border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition text-gray-700"
             >
               ← Previous
             </button>
           )}
           <button
             onClick={nextStep}
-            className={`flex-1 px-6 py-3 bg-[#f5d709] text-black rounded-lg hover:bg-[#e5c708] transition font-semibold ${
+            className={`flex-1 px-6 py-3 bg-[#f5d709] cursor-pointer text-black rounded-lg hover:bg-[#e5c708] transition  ${
               currentStep === 1 ? 'w-full' : ''
             }`}
           >

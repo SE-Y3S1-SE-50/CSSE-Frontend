@@ -83,7 +83,7 @@ export default function LoginForm() {
           <form className="w-[100%] flex flex-col gap-[1rem]" onSubmit={handleLogin}>
             <div className="flex flex-col gap-[0.25rem]">
               <label className="text-[#1D1D1D] text-[1rem]" htmlFor="userName">
-                Username
+                Email
               </label>
               <input
                 type="text"
