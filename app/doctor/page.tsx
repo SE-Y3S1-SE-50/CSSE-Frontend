@@ -99,7 +99,7 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-orange-500 text-white">
+    <div className="min-h-screen bg-green-500 text-white">
       {/* Header */}
       <DoctorNavigation user={user} setActiveTab={setActiveTab} />
 
