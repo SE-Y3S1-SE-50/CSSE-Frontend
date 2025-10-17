@@ -3,8 +3,28 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DoctorNavigation from "./components/DoctorNavigation";
 import Sidebar from "./components/Sidebar";
+import DiagnosisForm from "./components/Diagnosis/DiagnosisForm";
+import DiagnosisList from "./components/Diagnosis/DiagnosisList";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
+function DiagnosisSection() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [editingDiagnosis, setEditingDiagnosis] = useState<any>(null);
+
+  const refreshList = () => setRefreshKey((prev) => prev + 1);
+
+  return (
+    <div className="space-y-6">
+      <DiagnosisForm
+        onSuccess={refreshList}
+        editingDiagnosis={editingDiagnosis}
+        onCancelEdit={() => setEditingDiagnosis(null)}
+      />
+      <DiagnosisList key={refreshKey} onEdit={(d: any) => setEditingDiagnosis(d)} />
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -89,12 +109,18 @@ export default function AdminDashboard() {
 
         {/* Main Content */}
         <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-[#1D1D1D]">
-          {/* Add your components here */}
-          <div className="text-white">
-            <h1 className="text-3xl font-bold mb-4">Welcome, Dr. {user?.firstName} {user?.lastName}</h1>
-            <p>Active Tab: {activeTab}</p>
-          </div>
-        </main>
+  {activeTab === "overview" && (
+    <div className="text-white">
+      <h1 className="text-3xl font-bold mb-4">Welcome, Dr. {user?.firstName} {user?.lastName}</h1>
+      <p>Active Tab: {activeTab}</p>
+    </div>
+  )}
+
+  {activeTab === "diagnosis" && (
+    <DiagnosisSection />
+  )}
+</main>
+
       </div>
     </div>
   );
