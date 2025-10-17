@@ -1,8 +1,9 @@
-// app/utils/api.ts - FIXED VERSION (No Duplicates)
+// app/utils/api.ts - COMPLETE MERGED VERSION
 
 import axios from 'axios';
+import { PaymentRequest, PaymentResponse, PaymentHistoryResponse } from '../types/payment';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // Configure axios to include credentials (cookies) with every request
 const api = axios.create({
@@ -11,9 +12,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000,
 });
 
-// Add request interceptor for debugging
+// Request interceptor for logging and debugging
 api.interceptors.request.use(
   (config) => {
     console.log('API Request:', config.method?.toUpperCase(), config.url, config.data);
@@ -25,7 +27,7 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for debugging
+// Response interceptor for error handling and debugging
 api.interceptors.response.use(
   (response) => {
     console.log('API Response:', response.status, response.data);
@@ -38,7 +40,18 @@ api.interceptors.response.use(
       data: error.response?.data,
       message: error.message
     });
-    return Promise.reject(error);
+    
+    if (error.response) {
+      // Server responded with error status
+      const message = error.response.data?.message || 'An error occurred';
+      return Promise.reject(new Error(message));
+    } else if (error.request) {
+      // Request was made but no response received
+      return Promise.reject(new Error('Network error - please check your connection'));
+    } else {
+      // Something else happened
+      return Promise.reject(new Error('An unexpected error occurred'));
+    }
   }
 );
 
@@ -233,6 +246,69 @@ export const getAppointmentsByEmail = async (email: string) => {
 
 export const getAppointmentsByDoctor = async (doctorId: string) => {
   return api.get(`/appointment/doctor/${doctorId}`);
+};
+
+// ============================================
+// PAYMENT API
+// ============================================
+
+export const paymentApi = {
+  /**
+   * Process a payment
+   */
+  async processPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
+    try {
+      const response = await api.post('/payments', paymentData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get payment history for user
+   */
+  async getPaymentHistory(): Promise<PaymentHistoryResponse> {
+    try {
+      const response = await api.get('/payments/user');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Verify cash payment (admin action)
+   */
+  async verifyCashPayment(transactionId: string, finalStatus: 'Processed' | 'Failed'): Promise<PaymentResponse> {
+    try {
+      const response = await api.put('/payments/verify', {
+        transactionId,
+        finalStatus
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// ============================================
+// USER API
+// ============================================
+
+export const userApi = {
+  /**
+   * Get current user details
+   */
+  async getCurrentUser(userId: string): Promise<any> {
+    try {
+      const response = await api.get(`/user/current/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default api;
