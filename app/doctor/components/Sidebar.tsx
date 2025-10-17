@@ -26,41 +26,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
                     
                     <span className="font-medium">Dashboard Overview</span>
                     </button>
-                    <button 
-                    className={`w-full cursor-pointer flex items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
-                        activeTab === 'users' 
-                        ? 'bg-gray-800 text-blue-400 border-l-blue-400' 
-                        : 'text-gray-300 border-l-transparent hover:bg-gray-800 hover:text-blue-400 hover:border-l-blue-400'
-                    }`}
-                    onClick={() => setActiveTab('users')}
-                    >
+                   
                     
-                    <span className="font-medium">User Management</span>
-                    </button>
-                    
-                    <button 
-                    className={`w-full cursor-pointer flex items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
-                        activeTab === 'pricing' 
-                        ? 'bg-gray-800 text-blue-400 border-l-blue-400' 
-                        : 'text-gray-300 border-l-transparent hover:bg-gray-800 hover:text-blue-400 hover:border-l-blue-400'
-                    }`}
-                    onClick={() => setActiveTab('pricing')}
-                    >
-                    
-                    <span className="font-medium">Price Management</span>
-                    </button>
-
-                    <button 
-                    className={`w-full cursor-pointer flex items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
-                        activeTab === 'driverpricing' 
-                        ? 'bg-gray-800 text-blue-400 border-l-blue-400' 
-                        : 'text-gray-300 border-l-transparent hover:bg-gray-800 hover:text-blue-400 hover:border-l-blue-400'
-                    }`}
-                    onClick={() => setActiveTab('driverpricing')}
-                    >
-                    
-                    <span className="font-medium">Driver Fare Management</span>
-                    </button>
                     <button 
                     className={`w-full cursor-pointer flex items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
                         activeTab === 'profile' 
@@ -75,40 +42,23 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
                 </div>
                 </div>
 
-                <div className="px-6 mb-4">
-                <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">Monitoring</h3>
-                <div className="space-y-1">
-                   
-                    <button 
-                    className={`w-full flex cursor-pointer items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
-                        activeTab === 'kpis' 
-                        ? 'bg-gray-800 text-blue-400 border-l-blue-400' 
-                        : 'text-gray-300 border-l-transparent hover:bg-gray-800 hover:text-blue-400 hover:border-l-blue-400'
-                    }`}
-                    onClick={() => setActiveTab('kpis')}
-                    >
-                    
-                    <span className="font-medium">KPI Monitoring</span>
-                    </button>
-                    
-                </div>
-                </div>
+            
 
                 <div className="px-6 mb-2">
                 <h3 className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-4">Reports & System</h3>
                 <div className="space-y-1">
+                    
                     <button 
                     className={`w-full flex cursor-pointer items-center rounded-[10px] gap-3 px-4 py-3 text-left transition-all border-l-4 ${
-                        activeTab === 'reports' 
+                        activeTab === 'diagnosis' 
                         ? 'bg-gray-800 text-blue-400 border-l-blue-400' 
                         : 'text-gray-300 border-l-transparent hover:bg-gray-800 hover:text-blue-400 hover:border-l-blue-400'
                     }`}
-                    onClick={() => setActiveTab('reports')}
+                    onClick={() => setActiveTab('diagnosis')}
                     >
-                    
-                    <span className="font-medium">Reports</span>
+                    <span className="font-medium">Patient Diagnosis</span>
                     </button>
-                    
+
                 </div>
                 </div>
             </div>
