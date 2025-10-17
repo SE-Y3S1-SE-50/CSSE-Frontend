@@ -41,17 +41,15 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
-    // Only check for duplicate patientId when creating (not editing)
     if (!editingDiagnosis && existingPatientIds.includes(formData.patientId)) {
       setError("A record with this Patient ID already exists.");
       return;
     }
 
-    // Prevent future dates for diagnosisDate
     if (formData.diagnosisDate) {
       const selectedDate = new Date(formData.diagnosisDate);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Ignore time part
+      today.setHours(0, 0, 0, 0);
       if (selectedDate > today) {
         setError("Diagnosis date cannot be in the future.");
         return;
@@ -87,12 +85,14 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
     }
   };
 
-  // Get today's date in YYYY-MM-DD format for max attribute
   const todayStr = new Date().toISOString().split("T")[0];
 
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-800 p-6 rounded-xl shadow-lg space-y-4 text-white">
-      <h2 className="text-2xl font-semibold mb-2">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-6 rounded-xl shadow-md space-y-4 border border-green-100"
+    >
+      <h2 className="text-2xl font-semibold text-green-700 mb-2">
         {editingDiagnosis ? "Edit Diagnosis" : "New Patient Diagnosis"}
       </h2>
 
@@ -101,20 +101,18 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         placeholder="Patient ID"
         value={formData.patientId}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
         required
         disabled={!!editingDiagnosis}
       />
-      {error && (
-        <div className="text-red-400 text-sm mb-2">{error}</div>
-      )}
+      {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
 
       <input
         name="patientName"
         placeholder="Patient Name"
         value={formData.patientName}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
         required
       />
 
@@ -123,7 +121,8 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         placeholder="Symptoms"
         value={formData.symptoms}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
+        rows={2}
         required
       />
 
@@ -132,7 +131,8 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         placeholder="Diagnosis"
         value={formData.diagnosis}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
+        rows={2}
         required
       />
 
@@ -141,8 +141,8 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         placeholder="Remarks"
         value={formData.remarks}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
-        required
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-400"
+        rows={2}
       />
 
       <input
@@ -150,8 +150,8 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         name="diagnosisDate"
         value={formData.diagnosisDate}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
-        max={todayStr} // Prevent selecting future dates
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400"
+        max={todayStr}
         required
       />
 
@@ -159,7 +159,7 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         name="severity"
         value={formData.severity}
         onChange={handleChange}
-        className="w-full p-2 bg-gray-900 rounded text-white border border-gray-600"
+        className="w-full p-3 bg-green-50 rounded-lg border border-green-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-400"
         required
       >
         <option value="Mild">Mild</option>
@@ -167,15 +167,18 @@ export default function DiagnosisForm({ onSuccess, editingDiagnosis, onCancelEdi
         <option value="Severe">Severe</option>
       </select>
 
-      <div className="flex gap-2">
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">
+      <div className="flex gap-3 mt-4">
+        <button
+          type="submit"
+          className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md transition font-semibold"
+        >
           {editingDiagnosis ? "Update" : "Save"}
         </button>
         {editingDiagnosis && (
           <button
             type="button"
             onClick={onCancelEdit}
-            className="bg-gray-500 hover:bg-gray-600 px-4 py-2 rounded"
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-5 py-2 rounded-lg font-semibold"
           >
             Cancel
           </button>

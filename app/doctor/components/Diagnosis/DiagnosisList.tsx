@@ -49,22 +49,21 @@ export default function DiagnosisList({ onEdit }: any) {
   });
 
   return (
-    <div className="bg-gray-800 p-6 rounded-xl shadow-lg mt-6 text-white">
+    <div className="bg-white p-6 rounded-xl shadow-md mt-6 text-gray-900">
       <div className="flex items-center justify-between mb-4">
         <DiagnosisCount count={diagnoses.length} />
 
-<h2 className="text-2xl font-semibold mb-4">Diagnosis Records</h2>
-
+        <h2 className="text-2xl font-semibold text-green-700">Diagnosis Records</h2>
 
         <div>
-          <label htmlFor="severity-filter" className="mr-2 text-gray-300">
+          <label htmlFor="severity-filter" className="mr-2 text-gray-700 font-medium">
             Filter by Severity:
           </label>
           <select
             id="severity-filter"
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-gray-700 text-white px-3 py-1 rounded border border-gray-600"
+            className="bg-green-50 text-gray-800 px-3 py-2 rounded border border-green-300 focus:ring-2 focus:ring-green-400"
           >
             {SEVERITY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -74,76 +73,91 @@ export default function DiagnosisList({ onEdit }: any) {
           </select>
         </div>
       </div>
+
       {filteredDiagnoses.length === 0 ? (
-        <p>No diagnosis records{severityFilter ? ` for "${SEVERITY_OPTIONS.find(o => o.value === severityFilter)?.label}"` : ""}.</p>
+        <p className="text-gray-600">
+          No diagnosis records
+          {severityFilter
+            ? ` for "${SEVERITY_OPTIONS.find((o) => o.value === severityFilter)?.label}"`
+            : ""}
+          .
+        </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-gray-700 text-gray-200">
-                <th className="p-2 border border-gray-600">Patient ID</th>
-                <th className="p-2 border border-gray-600">Patient Name</th>
-                <th className="p-2 border border-gray-600">Symptoms</th>
-                <th className="p-2 border border-gray-600">Diagnosis</th>
-                <th className="p-2 border border-gray-600">Remarks</th>
-                <th className="p-2 border border-gray-600">Diagnosis Date</th>
-                <th className="p-2 border border-gray-600">Severity</th>
-                <th className="p-2 border border-gray-600">Actions</th>
+              <tr className="bg-green-100 text-green-900">
+                <th className="p-2 border border-green-200">Patient ID</th>
+                <th className="p-2 border border-green-200">Patient Name</th>
+                <th className="p-2 border border-green-200">Symptoms</th>
+                <th className="p-2 border border-green-200">Diagnosis</th>
+                <th className="p-2 border border-green-200">Remarks</th>
+                <th className="p-2 border border-green-200">Diagnosis Date</th>
+                <th className="p-2 border border-green-200">Severity</th>
+                <th className="p-2 border border-green-200">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredDiagnoses.map((d: any) => (
-                <tr key={d._id} className="hover:bg-gray-700 transition-colors">
-                  <td className="p-2 border border-gray-600">{d.patientId}</td>
-                  <td className="p-2 border border-gray-600 font-medium">{d.patientName}</td>
-                  <td className="p-2 border border-gray-600">{d.symptoms}</td>
-                  <td className="p-2 border border-gray-600">{d.diagnosis}</td>
-                  <td className="p-2 border border-gray-600">{d.remarks || "—"}</td>
-                  <td className="p-2 border border-gray-600">
-                    {d.diagnosisDate
-                      ? new Date(d.diagnosisDate).toLocaleDateString()
-                      : "—"}
-                  </td>
-                  <td className="p-2 border border-gray-600 text-center">
-                    {(() => {
-                      const severity =
-                        d.severityType?.toLowerCase() ||
-                        d.severity?.toLowerCase() ||
-                        "";
+              {filteredDiagnoses.map((d: any) => {
+                const severity =
+                  d.severityType?.toLowerCase() ||
+                  d.severity?.toLowerCase() ||
+                  "";
 
-                      let colorClass = "";
-                      if (severity === "severe") colorClass = "bg-red-600 text-white";
-                      else if (severity === "moderate") colorClass = "bg-yellow-500 text-black";
-                      else if (severity === "mild") colorClass = "bg-green-600 text-white";
-                      else colorClass = "bg-gray-500 text-white";
+                let colorClass = "";
+                if (severity === "severe")
+                  colorClass = "bg-red-100 text-red-800 border border-red-300";
+                else if (severity === "moderate")
+                  colorClass = "bg-yellow-100 text-yellow-800 border border-yellow-300";
+                else if (severity === "mild")
+                  colorClass = "bg-green-100 text-green-800 border border-green-300";
+                else colorClass = "bg-gray-100 text-gray-700 border border-gray-300";
 
-                      return (
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${colorClass}`}>
-                          {severity
-                            ? severity.charAt(0).toUpperCase() + severity.slice(1)
-                            : "—"}
-                        </span>
-                      );
-                    })()}
-                  </td>
-                  <td className="p-2 border border-gray-600 text-center">
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={() => onEdit(d)}
-                        className="bg-yellow-500 hover:bg-yellow-600 px-3 py-1 rounded text-black font-medium"
+                return (
+                  <tr
+                    key={d._id}
+                    className="hover:bg-green-50 transition-colors"
+                  >
+                    <td className="p-2 border border-green-200">{d.patientId}</td>
+                    <td className="p-2 border border-green-200 font-medium">
+                      {d.patientName}
+                    </td>
+                    <td className="p-2 border border-green-200">{d.symptoms}</td>
+                    <td className="p-2 border border-green-200">{d.diagnosis}</td>
+                    <td className="p-2 border border-green-200">{d.remarks || "—"}</td>
+                    <td className="p-2 border border-green-200">
+                      {d.diagnosisDate
+                        ? new Date(d.diagnosisDate).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="p-2 border border-green-200 text-center">
+                      <span
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold ${colorClass}`}
                       >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(d._id)}
-                        className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-white font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {severity
+                          ? severity.charAt(0).toUpperCase() + severity.slice(1)
+                          : "—"}
+                      </span>
+                    </td>
+                    <td className="p-2 border border-green-200 text-center">
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          onClick={() => onEdit(d)}
+                          className="bg-yellow-300 hover:bg-yellow-400 text-gray-900 px-3 py-1 rounded-lg text-sm font-semibold"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(d._id)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

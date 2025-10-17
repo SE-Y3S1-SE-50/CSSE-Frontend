@@ -1,115 +1,36 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import React from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-
-type UserResponse = {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-};
-
-interface CustomerNavigationProps {
-  user?: UserResponse;
-  setActiveTab?: (tab: string) => void;
-}
-
-const DoctorNavigation = ({ user, setActiveTab }: CustomerNavigationProps) => {
-  const router = useRouter();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      // ✅ FIXED: Use consistent endpoint
-      await fetch(`${API_BASE_URL}/api/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      router.push('/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  if (!user) return (
-    <div className="flex items-center justify-center min-h-screen bg-black text-white text-xl">
-      Loading...
-    </div>
-  );
-
+export default function DoctorNavigation({ user, setActiveTab }: any) {
   return (
-    <div className="fixed w-[100vw] top-0 z-[9999]">
-      <header className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700 px-8 py-4 sticky top-0 z-50">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-3xl">🏥</span>
-              <h1 className="text-3xl font-bold text-white">Doctor Portal</h1>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            {/* User Profile */}
-            <div className="relative" ref={dropdownRef}>
-              <div 
-                className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 rounded-lg px-3 py-2 transition-colors"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user.firstName?.charAt(0) || 'D'}
-                </div>
-                <div className="hidden md:block">
-                  <span className="text-white font-medium">Dr. {user.firstName} {user.lastName}</span>
-                  <p className="text-gray-400 text-xs">{user.email}</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-
-              {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg py-2 z-50">
-                  <button 
-                    onClick={() => {
-                      setActiveTab && setActiveTab('profile');
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full cursor-pointer px-4 py-2 text-left text-white hover:bg-gray-700 transition-colors"
-                  >
-                    Profile Settings
-                  </button>
-                  
-                  <div className="border-t border-gray-700 my-2"></div>
-                  <button 
-                    onClick={handleLogout}
-                    className="w-full cursor-pointer px-4 py-2 text-left text-red-400 hover:bg-gray-700 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
+    <header className="fixed top-0 left-0 w-full bg-white shadow-md border-b border-green-200 z-50">
+      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+        <h1 className="text-2xl font-bold text-green-700">
+          Doctor Portal
+        </h1>
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className="text-gray-700 hover:text-green-600 font-medium"
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("diagnosis")}
+            className="text-gray-700 hover:text-green-600 font-medium"
+          >
+            Diagnoses
+          </button>
+          <div className="flex items-center gap-3 border-l pl-4 border-gray-300">
+            <span className="text-sm text-gray-600">
+              {user?.firstName} {user?.lastName}
+            </span>
+            <div className="w-9 h-9 rounded-full bg-green-100 text-green-700 flex items-center justify-center font-semibold">
+              {user?.firstName?.[0]?.toUpperCase() || "D"}
             </div>
           </div>
         </div>
-      </header>
-    </div>
+      </div>
+    </header>
   );
-};
-
-export default DoctorNavigation;
+}
