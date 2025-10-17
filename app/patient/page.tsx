@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "./components/Sidebar";
 import PatientNavigation from "./components/PatientNavigation";
 import AppointmentPage from "./pages/appointmentPage";
+import DisplayAppointments from "./pages/DisplayAppointments";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -82,7 +83,7 @@ export default function PatientDashboard() {
   );
 
   return (
-    <div className="min-h-screen bg-orange-500 text-white">
+    <div className="min-h-screen bg-white text-white">
       {/* Header */}
       <PatientNavigation user={user} setActiveTab={setActiveTab} />
 
@@ -91,10 +92,11 @@ export default function PatientDashboard() {
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Main Content */}
-        <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-[#1D1D1D]">
-          {activeTab === 'appointment' && <AppointmentPage setActiveTab={setActiveTab} />}
+        <main className="flex-1 p-8 ml-[18vw] min-h-[90vh] mt-[10vh] overflow-y-auto bg-white">
+          {activeTab === 'booking' && <AppointmentPage setActiveTab={setActiveTab} />}
+          {activeTab === 'appointment' && <DisplayAppointments setActiveTab={setActiveTab} />}
           {activeTab === 'overview' && (
-            <div className="text-white">
+            <div className="text-black">
               <h1 className="text-3xl font-bold mb-4">Welcome, {user?.firstName} {user?.lastName}</h1>
               <p>Active Tab: {activeTab}</p>
             </div>

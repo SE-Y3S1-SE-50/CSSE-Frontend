@@ -43,29 +43,19 @@ export default function LoginForm() {
       console.log('User role:', role);
 
       if (role) {
-        // Create user object with available data
-        const userData = {
-          id: data.id || data.userId || '',
-          userName: data.userName || userName,
-          role: role,
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          email: data.email || '',
-          phoneNumber: data.phoneNumber || '',
-          gender: data.gender || '',
-          entityId: data.entityId || null,
-          hasProfile: data.hasProfile || false
-        };
 
-
-        // Store user in context and localStorage
-        login(userData);
-
-        // Navigate based on role
-        if (role === 'Admin') {
-          router.push('/admin'); // Navigate to admin dashboard
-        } else {
-          router.push('/home'); // Navigate to home for patients/doctors
+        switch (role) {
+          case "Doctor":
+            router.push("/doctor");
+            break;
+          case "Patient":
+            router.push("/patient");
+            break;
+          case "Admin":
+            router.push("/admin");
+            break;
+          default:
+            router.push("/");
         }
       } else {
         setError('No role assigned to user.');

@@ -55,12 +55,12 @@ const PatientNavigation = ({ user, setActiveTab }: CustomerNavigationProps) => {
 
   return (
     <div className="fixed w-[100vw] top-0 z-[9999]">
-      <header className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700 px-8 py-4 sticky top-0 z-50">
+      <header className="bg-gradient-to-r from-[#d7fe9f] to-[#6f9556] border-b border-gray-700 px-8 py-4 sticky top-0 z-50">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-3xl">🏥</span>
-              <h1 className="text-3xl font-bold text-white">Patient Portal</h1>
+              
+              <h1 className="text-3xl font-bold text-white">mediCure</h1>
             </div>
           </div>
           
