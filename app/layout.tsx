@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CSSE Healthcare Payment Portal",
+  title: "CSSE Healthcare Portal",
   description: "Make payments for healthcare services",
 };
 
