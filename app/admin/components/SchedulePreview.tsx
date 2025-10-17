@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAllSchedules, updateSchedule } from '../../utils/api';
+import { getAllSchedules, updateSchedule, deleteSchedule } from '../../utils/api';
 
 interface Schedule {
   _id: string;
@@ -33,6 +33,7 @@ export default function SchedulePreview() {
     endTime: '',
     notes: ''
   });
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
 
   useEffect(() => {
     fetchSchedules();
@@ -137,6 +138,61 @@ export default function SchedulePreview() {
     }));
   };
 
+  const handleDelete = async (scheduleId: string) => {
+    if (!confirm('Are you sure you want to delete this schedule? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await deleteSchedule(scheduleId);
+      
+      // Update the local state
+      const updatedSchedules = schedules.filter(schedule => schedule._id !== scheduleId);
+      setSchedules(updatedSchedules);
+      
+      // Clear selected schedule if it was deleted
+      if (selectedSchedule?._id === scheduleId) {
+        setSelectedSchedule(null);
+      }
+      
+      console.log('Schedule deleted successfully');
+    } catch (error: any) {
+      console.error('Error deleting schedule:', error);
+      alert(error.response?.data?.message || 'Error deleting schedule');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!selectedSchedule) return;
+
+    try {
+      setLoading(true);
+      await updateSchedule(selectedSchedule._id, { status: newStatus });
+      
+      // Update the local state
+      const updatedSchedules = schedules.map(schedule => 
+        schedule._id === selectedSchedule._id 
+          ? { ...schedule, status: newStatus }
+          : schedule
+      );
+      setSchedules(updatedSchedules);
+      
+      // Update selected schedule
+      setSelectedSchedule({ ...selectedSchedule, status: newStatus });
+      setIsChangingStatus(false);
+      
+      console.log('Schedule status updated successfully');
+    } catch (error: any) {
+      console.error('Error updating schedule status:', error);
+      alert(error.response?.data?.message || 'Error updating schedule status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -220,7 +276,7 @@ export default function SchedulePreview() {
                     {formatDate(schedule.shiftDate)}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="flex items-center space-x-2">
                   <span className={`inline-block px-2 py-1 text-xs rounded-full ${
                     schedule.status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
                     schedule.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
@@ -229,6 +285,33 @@ export default function SchedulePreview() {
                   }`}>
                     {schedule.status}
                   </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSchedule(schedule);
+                      setIsChangingStatus(true);
+                    }}
+                    disabled={loading}
+                    className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded disabled:opacity-50"
+                    title="Change status"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(schedule._id);
+                    }}
+                    disabled={loading}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded disabled:opacity-50"
+                    title="Delete schedule"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -239,7 +322,16 @@ export default function SchedulePreview() {
       {/* Selected Schedule Details */}
       {selectedSchedule && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-900 mb-3">Schedule Details</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-gray-900">Schedule Details</h3>
+            <button
+              onClick={() => handleDelete(selectedSchedule._id)}
+              disabled={loading}
+              className="px-3 py-1 text-sm text-red-600 hover:text-red-800 hover:bg-red-100 rounded disabled:opacity-50"
+            >
+              Delete Schedule
+            </button>
+          </div>
           <div className="space-y-2 text-sm">
             <div>
               <span className="font-medium text-gray-700">Date:</span>
@@ -296,6 +388,49 @@ export default function SchedulePreview() {
             <div>
               <span className="font-medium text-gray-700">Department:</span>
               <span className="ml-2 text-gray-600">{selectedSchedule.departmentId?.name}</span>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Status:</span>
+              {isChangingStatus ? (
+                <div className="flex items-center space-x-2 mt-1">
+                  <select
+                    value={selectedSchedule.status}
+                    onChange={(e) => handleStatusChange(e.target.value)}
+                    className="px-2 py-1 border border-gray-300 rounded text-gray-900"
+                    disabled={loading}
+                  >
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                  <button
+                    onClick={() => setIsChangingStatus(false)}
+                    className="px-2 py-1 text-sm text-gray-600 hover:text-gray-800"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                    selectedSchedule.status === 'Scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedSchedule.status === 'Confirmed' ? 'bg-green-100 text-green-800' :
+                    selectedSchedule.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                    selectedSchedule.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedSchedule.status}
+                  </span>
+                  <button
+                    onClick={() => setIsChangingStatus(true)}
+                    disabled={loading}
+                    className="px-2 py-1 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded disabled:opacity-50"
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
             </div>
             <div>
               <span className="font-medium text-gray-700">Notes:</span>
