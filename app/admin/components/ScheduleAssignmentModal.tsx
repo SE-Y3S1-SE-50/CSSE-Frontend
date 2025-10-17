@@ -43,7 +43,6 @@ export default function ScheduleAssignmentModal({
     endTime: '17:00',
     notes: ''
   });
-  const [allStaff, setAllStaff] = useState<Staff[]>([]);
   const [availableStaff, setAvailableStaff] = useState<Staff[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,13 +62,6 @@ export default function ScheduleAssignmentModal({
     }
   }, [isOpen, formData.shiftDate, formData.startTime, formData.endTime, formData.departmentId]);
 
-  // Filter staff when allStaff or departmentId changes
-  useEffect(() => {
-    if (allStaff.length > 0) {
-      filterStaffByDepartment(formData.departmentId);
-    }
-  }, [allStaff, formData.departmentId]);
-
   const fetchDepartments = async () => {
     try {
       const response = await getAllDepartments();
@@ -83,26 +75,10 @@ export default function ScheduleAssignmentModal({
   const fetchAllStaff = async () => {
     try {
       const response = await getAllStaff();
-      setAllStaff(response.data || []);
-      // Initially show all staff, will be filtered when department is selected
       setAvailableStaff(response.data || []);
     } catch (error) {
       console.error('Error fetching staff:', error);
-      setAllStaff([]);
       setAvailableStaff([]);
-    }
-  };
-
-  const filterStaffByDepartment = (departmentId: string) => {
-    if (!departmentId) {
-      // If no department selected, show all staff
-      setAvailableStaff(allStaff);
-    } else {
-      // Filter staff by selected department
-      const filteredStaff = allStaff.filter(staff => 
-        staff.department && staff.department._id === departmentId
-      );
-      setAvailableStaff(filteredStaff);
     }
   };
 
@@ -136,11 +112,6 @@ export default function ScheduleAssignmentModal({
           staffId: ''
         }));
       }
-      
-      // If department changes, filter staff by department
-      if (name === 'departmentId') {
-        filterStaffByDepartment(value);
-      }
     }
   };
 
@@ -150,24 +121,13 @@ export default function ScheduleAssignmentModal({
     setError('');
 
     try {
-      console.log('Form data:', formData);
-      console.log('User ID:', userId);
-      
       const scheduleData = {
         ...formData,
-        shiftDate: new Date(formData.shiftDate).toISOString(),
+        shiftDate: new Date(formData.shiftDate),
         createdBy: userId
       };
       console.log('Creating schedule with data:', scheduleData);
-      
-      // Validate required fields
-      if (!scheduleData.staffId || !scheduleData.departmentId || !scheduleData.shiftDate || !scheduleData.createdBy) {
-        throw new Error('Missing required fields');
-      }
-      
-      const response = await createSchedule(scheduleData);
-      console.log('Schedule created successfully:', response.data);
-      
+      await createSchedule(scheduleData);
       onSuccess();
       onClose();
       // Reset form
@@ -181,10 +141,7 @@ export default function ScheduleAssignmentModal({
         notes: ''
       });
     } catch (error: any) {
-      console.error('Error creating schedule:', error);
-      console.error('Error response:', error.response?.data);
-      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message || 'Error creating schedule';
-      setError(errorMessage);
+      setError(error.response?.data?.message || 'Error creating schedule');
     } finally {
       setLoading(false);
     }
@@ -234,24 +191,17 @@ export default function ScheduleAssignmentModal({
               value={formData.staffId}
               onChange={handleInputChange}
               required
-              disabled={dataLoading || !formData.departmentId}
+              disabled={dataLoading}
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 text-gray-900"
             >
-              <option value="">
-                {dataLoading ? 'Loading staff...' : 
-                 formData.departmentId ? 'Select Staff Member from Department' : 
-                 'Select Department First'}
-              </option>
+              <option value="">{dataLoading ? 'Loading staff...' : 'Select Staff Member'}</option>
               {Array.isArray(availableStaff) && availableStaff.map((staff) => (
                 <option key={staff._id} value={staff._id}>
                   {staff.firstName} {staff.lastName} ({staff.role})
                 </option>
               ))}
             </select>
-            {formData.departmentId && availableStaff.length === 0 && (
-              <p className="text-sm text-gray-500 mt-1">No staff members found in this department</p>
-            )}
-            {formData.shiftDate && formData.startTime && formData.endTime && availableStaff.length === 0 && !formData.departmentId && (
+            {formData.shiftDate && formData.startTime && formData.endTime && availableStaff.length === 0 && (
               <p className="text-sm text-gray-500 mt-1">No available staff for this time slot</p>
             )}
           </div>
